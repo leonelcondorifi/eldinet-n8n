@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
+import sqlite3
 import threading
 from pathlib import Path
-import sqlite3
 
 _DEFAULT_DB_PATH = Path(__file__).resolve().parent / "app.db"
-DB_PATH = Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser()
-_INITIALIZED = False
+DB_PATH = Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser().resolve()
 _INITIALIZE_LOCK = threading.Lock()
+_INITIALIZED_PATHS: set[Path] = set()
 
 SEED_CLIENTS = [
     {"id": 1, "name": "Ada Lovelace", "email": "ada.lovelace@example.com"},
@@ -74,22 +74,16 @@ def _initialize_database(db_path: Path) -> None:
 
 
 def initialize_database(db_path: Path = DB_PATH) -> None:
-    global _INITIALIZED
+    db_path = db_path.expanduser().resolve()
     with _INITIALIZE_LOCK:
+        if db_path in _INITIALIZED_PATHS:
+            return
         _initialize_database(db_path)
-        if db_path == DB_PATH:
-            _INITIALIZED = True
+        _INITIALIZED_PATHS.add(db_path)
 
 
 def _ensure_initialized() -> None:
-    global _INITIALIZED
-    if _INITIALIZED:
-        return
-    with _INITIALIZE_LOCK:
-        if _INITIALIZED:
-            return
-        _initialize_database(DB_PATH)
-        _INITIALIZED = True
+    initialize_database(DB_PATH)
 
 
 def fetch_clients() -> list[dict[str, str | int]]:
