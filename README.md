@@ -24,6 +24,12 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+## Inicializar base de datos SQLite
+
+```bash
+python seed_db.py
+```
+
 ## Ejecutar tests
 
 ```bash
