@@ -2,7 +2,7 @@
 
 Repositorio para ejecutar n8n con Docker Compose.
 
-## Uso rapido
+## Uso rápido
 
 1. Configura el archivo `n8n/.env` con las variables necesarias.
 2. Levanta el servicio:
