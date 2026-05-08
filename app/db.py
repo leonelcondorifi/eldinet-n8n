@@ -4,8 +4,9 @@ import os
 from pathlib import Path
 import sqlite3
 
-_DEFAULT_DB_PATH = Path(__file__).resolve().parent / "eldinet.db"
+_DEFAULT_DB_PATH = Path(__file__).resolve().parent / "app.db"
 DB_PATH = Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser()
+_INITIALIZED = False
 
 SEED_CLIENTS = [
     {"id": 1, "name": "Ada Lovelace", "email": "ada.lovelace@example.com"},
@@ -62,15 +63,23 @@ def _seed_users(connection: sqlite3.Connection) -> None:
 
 
 def initialize_database(db_path: Path = DB_PATH) -> None:
+    global _INITIALIZED
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with _connect(db_path) as connection:
         _create_tables(connection)
         _seed_clients(connection)
         _seed_users(connection)
         connection.commit()
+    _INITIALIZED = True
+
+
+def _ensure_initialized() -> None:
+    if not _INITIALIZED:
+        initialize_database()
 
 
 def fetch_clients() -> list[dict[str, str | int]]:
+    _ensure_initialized()
     with _connect() as connection:
         rows = connection.execute(
             "SELECT id, name, email FROM clients ORDER BY id"
@@ -79,6 +88,7 @@ def fetch_clients() -> list[dict[str, str | int]]:
 
 
 def fetch_users() -> list[dict[str, str | int]]:
+    _ensure_initialized()
     with _connect() as connection:
         rows = connection.execute(
             "SELECT id, name, email FROM users ORDER BY id"

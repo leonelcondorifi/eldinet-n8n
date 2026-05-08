@@ -27,10 +27,10 @@ class User(BaseModel):
     email: str
 
 @app.get("/clients", response_model=list[Client])
-def list_clients() -> list[Client]:
+def list_clients() -> list[dict[str, str | int]]:
     return fetch_clients()
 
 
 @app.get("/users", response_model=list[User])
-def list_users() -> list[User]:
+def list_users() -> list[dict[str, str | int]]:
     return fetch_users()
