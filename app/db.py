@@ -5,6 +5,7 @@ import sqlite3
 from typing import Iterable
 
 DB_PATH = Path(__file__).resolve().parent / "eldinet.db"
+_ALLOWED_TABLES = {"clients", "users"}
 
 SEED_CLIENTS = [
     {"id": 1, "name": "Ada Lovelace", "email": "ada.lovelace@example.com"},
@@ -51,6 +52,8 @@ def _seed_table(
     table: str,
     rows: Iterable[dict[str, str | int]],
 ) -> None:
+    if table not in _ALLOWED_TABLES:
+        raise ValueError(f"Unsupported table: {table}")
     count = connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
     if count:
         return
@@ -70,7 +73,6 @@ def initialize_database(db_path: Path = DB_PATH) -> None:
 
 
 def fetch_clients() -> list[dict[str, str | int]]:
-    initialize_database()
     with _connect() as connection:
         rows = connection.execute(
             "SELECT id, name, email FROM clients ORDER BY id"
@@ -79,7 +81,6 @@ def fetch_clients() -> list[dict[str, str | int]]:
 
 
 def fetch_users() -> list[dict[str, str | int]]:
-    initialize_database()
     with _connect() as connection:
         rows = connection.execute(
             "SELECT id, name, email FROM users ORDER BY id"
