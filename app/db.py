@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sqlite3
-from typing import Iterable
-
 DB_PATH = Path(__file__).resolve().parent / "eldinet.db"
-_ALLOWED_TABLES = {"clients", "users"}
 
 SEED_CLIENTS = [
     {"id": 1, "name": "Ada Lovelace", "email": "ada.lovelace@example.com"},
@@ -47,19 +44,23 @@ def _create_tables(connection: sqlite3.Connection) -> None:
     )
 
 
-def _seed_table(
-    connection: sqlite3.Connection,
-    table: str,
-    rows: Iterable[dict[str, str | int]],
-) -> None:
-    if table not in _ALLOWED_TABLES:
-        raise ValueError(f"Unsupported table: {table}")
-    count = connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+def _seed_clients(connection: sqlite3.Connection) -> None:
+    count = connection.execute("SELECT COUNT(*) FROM clients").fetchone()[0]
     if count:
         return
     connection.executemany(
-        f"INSERT INTO {table} (id, name, email) VALUES (:id, :name, :email)",
-        rows,
+        "INSERT INTO clients (id, name, email) VALUES (:id, :name, :email)",
+        SEED_CLIENTS,
+    )
+
+
+def _seed_users(connection: sqlite3.Connection) -> None:
+    count = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    if count:
+        return
+    connection.executemany(
+        "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)",
+        SEED_USERS,
     )
 
 
@@ -67,8 +68,8 @@ def initialize_database(db_path: Path = DB_PATH) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with _connect(db_path) as connection:
         _create_tables(connection)
-        _seed_table(connection, "clients", SEED_CLIENTS)
-        _seed_table(connection, "users", SEED_USERS)
+        _seed_clients(connection)
+        _seed_users(connection)
         connection.commit()
 
 
