@@ -64,15 +64,21 @@ def _seed_users(connection: sqlite3.Connection) -> None:
     )
 
 
-def initialize_database(db_path: Path = DB_PATH) -> None:
-    global _INITIALIZED
+def _initialize_database(db_path: Path) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     with _connect(db_path) as connection:
         _create_tables(connection)
         _seed_clients(connection)
         _seed_users(connection)
         connection.commit()
-    _INITIALIZED = True
+
+
+def initialize_database(db_path: Path = DB_PATH) -> None:
+    global _INITIALIZED
+    with _INITIALIZE_LOCK:
+        _initialize_database(db_path)
+        if db_path == DB_PATH:
+            _INITIALIZED = True
 
 
 def _ensure_initialized() -> None:
@@ -82,7 +88,8 @@ def _ensure_initialized() -> None:
     with _INITIALIZE_LOCK:
         if _INITIALIZED:
             return
-        initialize_database()
+        _initialize_database(DB_PATH)
+        _INITIALIZED = True
 
 
 def fetch_clients() -> list[dict[str, str | int]]:
