@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import sqlite3
 
-DB_PATH = Path(__file__).resolve().parent / "eldinet.db"
+_DEFAULT_DB_PATH = Path(__file__).resolve().parent / "eldinet.db"
+DB_PATH = Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser()
 
 SEED_CLIENTS = [
     {"id": 1, "name": "Ada Lovelace", "email": "ada.lovelace@example.com"},
@@ -46,21 +48,15 @@ def _create_tables(connection: sqlite3.Connection) -> None:
 
 
 def _seed_clients(connection: sqlite3.Connection) -> None:
-    count = connection.execute("SELECT COUNT(*) FROM clients").fetchone()[0]
-    if count:
-        return
     connection.executemany(
-        "INSERT INTO clients (id, name, email) VALUES (:id, :name, :email)",
+        "INSERT OR IGNORE INTO clients (id, name, email) VALUES (:id, :name, :email)",
         SEED_CLIENTS,
     )
 
 
 def _seed_users(connection: sqlite3.Connection) -> None:
-    count = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    if count:
-        return
     connection.executemany(
-        "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)",
+        "INSERT OR IGNORE INTO users (id, name, email) VALUES (:id, :name, :email)",
         SEED_USERS,
     )
 
