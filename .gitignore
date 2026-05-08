@@ -1,2 +1,39 @@
 __pycache__/
 *.pyc
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and build artifacts
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Test / coverage outputs
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env files
+.env
+.env.*
