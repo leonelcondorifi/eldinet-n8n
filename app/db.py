@@ -6,7 +6,10 @@ import threading
 from pathlib import Path
 
 _DEFAULT_DB_PATH = Path(__file__).resolve().parent / "app.db"
-DB_PATH = Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser().resolve()
+
+
+def get_db_path() -> Path:
+    return Path(os.getenv("ELDINET_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser().resolve()
 _INITIALIZE_LOCK = threading.Lock()
 _INITIALIZED_PATHS: set[Path] = set()
 
@@ -23,7 +26,8 @@ SEED_USERS = [
 ]
 
 
-def _connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
+def _connect(db_path: Path | None = None) -> sqlite3.Connection:
+    db_path = db_path or get_db_path()
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     return connection
@@ -73,8 +77,11 @@ def _initialize_database(db_path: Path) -> None:
         connection.commit()
 
 
-def initialize_database(db_path: Path = DB_PATH) -> None:
-    db_path = db_path.expanduser().resolve()
+def initialize_database(db_path: Path | None = None) -> None:
+    if db_path is None:
+        db_path = get_db_path()
+    else:
+        db_path = Path(db_path).expanduser().resolve()
     with _INITIALIZE_LOCK:
         if db_path in _INITIALIZED_PATHS:
             return
@@ -83,7 +90,7 @@ def initialize_database(db_path: Path = DB_PATH) -> None:
 
 
 def _ensure_initialized() -> None:
-    initialize_database(DB_PATH)
+    initialize_database()
 
 
 def fetch_clients() -> list[dict[str, str | int]]:
