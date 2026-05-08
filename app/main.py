@@ -28,9 +28,9 @@ class User(BaseModel):
 
 @app.get("/clients", response_model=list[Client])
 def list_clients() -> list[Client]:
-    return [Client(**client) for client in fetch_clients()]
+    return fetch_clients()
 
 
 @app.get("/users", response_model=list[User])
 def list_users() -> list[User]:
-    return [User(**user) for user in fetch_users()]
+    return fetch_users()
